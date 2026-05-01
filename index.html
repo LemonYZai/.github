@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEMON YZ - PROMPT ENGINE PRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700;900&family=Space+Grotesk:wght@300;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-lemon: 'League Spartan', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
+            --accent: #facc15;
+            --bg-dark: #0b0b0b;
+            --card-bg: rgba(23, 23, 23, 0.7);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #f3f4f6;
+            font-family: var(--font-body);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .lemon-milk {
+            font-family: var(--font-lemon);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 900;
+        }
+
+        .gemini-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .gemini-card:hover {
+            border-color: rgba(250, 204, 21, 0.3);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 15, 15, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+        }
+
+        .style-chip {
+            padding: 12px 8px;
+            text-align: center;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .style-chip.active {
+            background: var(--accent);
+            color: #000;
+            font-weight: 600;
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .control-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+        }
+
+        .prompt-textarea {
+            background: transparent;
+            resize: none;
+            border: none;
+            width: 100%;
+            color: #fff;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .prompt-textarea:focus {
+            outline: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        #side-tools {
+            transform: translateX(-100%);
+        }
+        #side-tools.open {
+            transform: translateX(0);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .loading-shimmer {
+            background: linear-gradient(90deg, transparent, rgba(250, 204, 21, 0.1), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="flex">
+
+    <!-- Sol Araç Paneli (Özgün Terimler) -->
+    <aside id="side-tools" class="fixed lg:static inset-y-0 left-0 z-50 sidebar p-6 flex flex-col gap-8 custom-scrollbar overflow-y-auto">
+        <div class="flex items-center justify-between">
+            <span class="lemon-milk text-yellow-400 text-lg">LEMON YZ</span>
+            <button onclick="toggleSidebar()" class="lg:hidden text-gray-400">✕</button>
+        </div>
+
+        <div>
+            <h3 class="lemon-milk text-[10px] text-gray-500 mb-6 tracking-widest">MOTOR SEÇENEKLERİ</h3>
+            <nav class="space-y-4">
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">G</div>
+                    <span class="text-sm font-medium">Görsel Üreteci</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">T</div>
+                    <span class="text-sm font-medium">Tasarım Aracı</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
+                    <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-all">V</div>
+                    <span class="text-sm font-medium">Video Üreteci</span>
+                </div>
+            </nav>
+        </div>
+
+        <div class="mt-auto p-4 gemini-card bg-yellow-400/5 border-yellow-400/20">
+            <p class="text-[10px] text-yellow-400/70 lemon-milk mb-2">İPUCU</p>
+            <p class="text-xs text-gray-400 leading-relaxed">Daha iyi sonuçlar için "Işıklandırma" ayarlarını deneyin.</p>
+        </div>
+    </aside>
+
+    <!-- Ana İçerik -->
+    <main class="flex-1 flex flex-col items-center p-4 lg:p-10 max-h-screen overflow-y-auto custom-scrollbar">
+        
+        <!-- Header -->
+        <header class="w-full max-w-4xl flex items-center justify-between mb-12">
+            <button onclick="toggleSidebar()" class="p-3 gemini-card hover:bg-white/5">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div class="text-center">
+                <h1 class="lemon-milk text-4xl tracking-tighter">LEMON<span class="text-yellow-400">YZ</span></h1>
+            </div>
+            <div class="flex gap-2">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 to-orange-500 flex items-center justify-center font-bold text-black">A</div>
+            </div>
+        </header>
+
+        <div class="w-full max-w-4xl space-y-8">
+            
+            <!-- Ana Giriş Alanı -->
+            <section class="gemini-card p-8">
+                <div class="flex items-start gap-4">
+                    <div class="pt-2">
+                        <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4l2 2H4v10h10v-4l2 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <label class="lemon-milk text-[10px] text-gray-500 mb-2 block">BURAYA HAYALİNİ YAZ</label>
+                        <textarea id="userInput" class="prompt-textarea h-32" placeholder="Örn: Karlı dağların tepesinde gizemli bir tapınak..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Kontroller -->
+                <div class="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex gap-2 no-select">
+                        <button onclick="updateType('image')" id="type-image" class="px-4 py-2 rounded-full text-xs font-medium transition-all bg-yellow-400 text-black">Görsel</button>
+                        <button onclick="updateType('video')" id="type-video" class="px-4 py-2 rounded-full text-xs font-medium transition-all bg-white/5 hover:bg-white/10">Video</button>
+                    </div>
+                    <div class="flex items-center gap-6 text-xs text-gray-400">
+                        <div class="flex items-center gap-2">
+                            <span>Vurgu Gücü:</span>
+                            <input type="range" id="stylizeRange" class="control-slider w-24" min="0" max="1000" value="300">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span>Değişkenlik:</span>
+                            <input type="range" id="chaosRange" class="control-slider w-24" min="0" max="100" value="0">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stil ve Negatif Prompt Paneli -->
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="md:col-span-2 gemini-card p-6">
+                    <h3 class="lemon-milk text-[10px] text-gray-500 mb-4 tracking-widest">STİL SEÇENEKLERİ</h3>
+                    <div class="style-grid custom-scrollbar overflow-y-auto max-h-[300px] pr-2">
+                        <div onclick="selectStyle(this, 'Cinematic')" class="style-chip active"><span class="text-[11px] lemon-milk">Sinematik</span></div>
+                        <div onclick="selectStyle(this, 'Photorealistic')" class="style-chip"><span class="text-[11px] lemon-milk">Gerçekçi</span></div>
+                        <div onclick="selectStyle(this, 'Cyberpunk')" class="style-chip"><span class="text-[11px] lemon-milk">Gelecekçi</span></div>
+                        <div onclick="selectStyle(this, 'Fantasy')" class="style-chip"><span class="text-[11px] lemon-milk">Fantastik</span></div>
+                        <div onclick="selectStyle(this, 'Anime')" class="style-chip"><span class="text-[11px] lemon-milk">Çizim</span></div>
+                        <div onclick="selectStyle(this, 'Animation')" class="style-chip"><span class="text-[11px] lemon-milk">3D Animasyon</span></div>
+                        <div onclick="selectStyle(this, 'Ink Painting')" class="style-chip"><span class="text-[11px] lemon-milk">Mürekkep</span></div>
+                        <div onclick="selectStyle(this, 'Oil Painting')" class="style-chip"><span class="text-[11px] lemon-milk">Yağlı Boya</span></div>
+                        <div onclick="selectStyle(this, 'Digital Art')" class="style-chip"><span class="text-[11px] lemon-milk">Dijital Sanat</span></div>
+                        <div onclick="selectStyle(this, 'Graphic')" class="style-chip"><span class="text-[11px] lemon-milk">Grafik</span></div>
+                        <div onclick="selectStyle(this, 'Sketch')" class="style-chip"><span class="text-[11px] lemon-milk">Eskiz</span></div>
+                        <div onclick="selectStyle(this, 'Minimalist')" class="style-chip"><span class="text-[11px] lemon-milk">Yalın</span></div>
+                    </div>
+                </div>
+                <div class="gemini-card p-6 flex flex-col">
+                    <h3 class="lemon-milk text-[10px] text-gray-500 mb-4 tracking-widest">İSTENMEYENLER</h3>
+                    <textarea id="negativePrompt" class="flex-1 bg-white/5 rounded-2xl p-4 text-xs text-gray-400 focus:outline-none focus:ring-1 focus:ring-yellow-400/50" placeholder="Örn: (bulanıklık, düşük kalite, yazı, filigran...)"></textarea>
+                </div>
+            </div>
+
+            <!-- Sonuç Paneli -->
+            <section class="relative group">
+                <div id="outputContainer" class="gemini-card p-8 min-h-[200px] border-dashed border-2 border-white/10 flex flex-col justify-center items-center text-center">
+                    <div id="outputDisplay" class="text-gray-400 leading-relaxed max-w-2xl">
+                        Motor çalışmaya hazır. Bir fikir girin ve "Oluştur" butonuna basın.
+                    </div>
+                </div>
+
+                <!-- Alt İşlem Çubuğu -->
+                <div class="mt-8 flex gap-4">
+                    <button onclick="processAI()" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black lemon-milk py-5 rounded-2xl transition-all shadow-xl shadow-yellow-400/10 flex items-center justify-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        OLUŞTUR
+                    </button>
+                    <button onclick="copyToClipboard()" class="gemini-card px-8 flex items-center justify-center hover:bg-white/10">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                    </button>
+                </div>
+                <p id="copyFeedback" class="text-center text-yellow-400 lemon-milk text-[10px] mt-4 opacity-0 transition-opacity">KOPYALANDI</p>
+            </section>
+        </div>
+
+        <footer class="mt-20 w-full max-w-4xl py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-gray-600">
+            <span class="lemon-milk text-[10px] tracking-widest">LEMON YZ SİSTEMLERİ // GÜVENLİ SÜRÜM</span>
+            <div class="flex gap-6 mt-4 md:mt-0">
+                <span class="text-xs hover:text-white cursor-pointer">Gizlilik</span>
+                <span class="text-xs hover:text-white cursor-pointer">Şartlar</span>
+                <span class="text-xs hover:text-white cursor-pointer">Destek</span>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        let selectedMode = 'image';
+        let selectedStyle = 'Cinematic';
+
+        // Telif hakkı içermeyen, genel sanat tanımları
+        const styleData = {
+            'Cinematic': 'cinematic lighting, dramatic shadows, professional film look, high dynamic range, detailed textures',
+            'Photorealistic': 'photorealistic, ultra-high resolution, sharp focus, natural lighting, highly detailed',
+            'Cyberpunk': 'neon lighting, high-tech urban aesthetic, futuristic atmosphere, vibrant glow, nighttime city vibes',
+            'Fantasy': 'ethereal lighting, magical atmosphere, intricate detail, mystical art style, epic scale',
+            'Anime': 'stylized hand-drawn look, vibrant cell-shaded colors, clean line art, high-fidelity art',
+            'Animation': 'high-end 3D character style, professional render, smooth surfaces, expressive lighting',
+            'Ink Painting': 'traditional ink wash style, flowing lines, minimalist aesthetic, vintage texture',
+            'Oil Painting': 'rich oil textures, visible brushstrokes, classical masterpiece style, heavy impasto',
+            'Digital Art': 'modern digital painting, clean execution, smooth gradients, trending professional art',
+            'Graphic': 'bold graphic design, high contrast, clean vector aesthetic, stylized composition',
+            'Sketch': 'detailed pencil drawing, hand-drawn sketch, artistic texture, fine shading',
+            'Minimalist': 'clean lines, negative space, simple forms, limited color palette, elegant'
+        };
+
+        function toggleSidebar() {
+            document.getElementById('side-tools').classList.toggle('open');
+            document.getElementById('side-tools').classList.toggle('fixed');
+        }
+
+        function updateType(type) {
+            selectedMode = type;
+            document.getElementById('type-image').className = type === 'image' 
+                ? 'px-4 py-2 rounded-full text-xs font-medium bg-yellow-400 text-black' 
+                : 'px-4 py-2 rounded-full text-xs font-medium bg-white/5 hover:bg-white/10';
+            document.getElementById('type-video').className = type === 'video' 
+                ? 'px-4 py-2 rounded-full text-xs font-medium bg-yellow-400 text-black' 
+                : 'px-4 py-2 rounded-full text-xs font-medium bg-white/5 hover:bg-white/10';
+        }
+
+        function selectStyle(el, style) {
+            selectedStyle = style;
+            document.querySelectorAll('.style-chip').forEach(chip => chip.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function processAI() {
+            const input = document.getElementById('userInput').value.trim();
+            const neg = document.getElementById('negativePrompt').value.trim();
+            const stylize = document.getElementById('stylizeRange').value;
+            const chaos = document.getElementById('chaosRange').value;
+            const output = document.getElementById('outputDisplay');
+            const container = document.getElementById('outputContainer');
+            
+            if (!input) {
+                output.innerText = "Lütfen bir açıklama girin...";
+                return;
+            }
+
+            container.classList.add('loading-shimmer');
+            output.innerHTML = '<span class="lemon-milk text-yellow-400 animate-pulse text-xs">Sistem Analiz Ediliyor...</span>';
+
+            setTimeout(() => {
+                const styleTags = styleData[selectedStyle];
+                const baseSubject = `A professional ${selectedStyle.toLowerCase()} work of ${input}`;
+                
+                let finalPrompt = `${baseSubject}, ${styleTags}, high quality, detailed`;
+                
+                if (neg) finalPrompt += `, --exclude ${neg}`;
+                
+                if (selectedMode === 'image') {
+                    finalPrompt += ` --ratio 16:9 --style-strength ${stylize} --variance ${chaos}`;
+                } else {
+                    finalPrompt += ` --movement 5 --ratio 16:9 --upscale`;
+                }
+
+                container.classList.remove('loading-shimmer');
+                output.innerText = finalPrompt;
+            }, 1200);
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('outputDisplay').innerText;
+            if (text.length < 10) return;
+
+            const temp = document.createElement("textarea");
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand("copy");
+            document.body.removeChild(temp);
+
+            const feedback = document.getElementById('copyFeedback');
+            feedback.style.opacity = '1';
+            setTimeout(() => feedback.style.opacity = '0', 2000);
+        }
+    </script>
+</body>
+</html>
