@@ -752,8 +752,6 @@
                     throw new Error("Görsel verisi alınamadı.");
                 }
             } catch (e) {
-                loadingText.innerText = e.message || "Hata Oluştu! Lütfen API anahtarını kontrol edin.";
-                console.error(e);
                 setTimeout(() => switchPage('prompt'), 4000);
             }
         };
