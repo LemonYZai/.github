@@ -17,7 +17,7 @@
             --card-border: rgba(255, 255, 255, 0.1);
         }
 
-        /* Genişletilmiş Tema Renkleri */
+        /* Tema Renkleri */
         body.theme-neon { --accent: #00f2ff; --accent-secondary: #7000ff; --accent-rgb: 0, 242, 255; }
         body.theme-lava { --accent: #ff0000; --accent-secondary: #ff8c00; --accent-rgb: 255, 0, 0; }
         body.theme-cyber { --accent: #bf00ff; --accent-secondary: #ff00ff; --accent-rgb: 191, 0, 255; }
@@ -35,7 +35,6 @@
             transition: all 0.5s ease;
         }
 
-        /* Mouse Follower */
         #cursor-glow {
             position: fixed;
             width: 400px;
@@ -50,7 +49,6 @@
 
         .heading-font { font-family: var(--font-display); text-transform: uppercase; }
 
-        /* Glassmorphism */
         .glass-card {
             background: var(--card-glass);
             backdrop-filter: blur(12px);
@@ -66,7 +64,6 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: rgba(5, 5, 10, 0.95);
@@ -98,7 +95,6 @@
             box-shadow: 0 10px 20px -5px rgba(var(--accent-rgb), 0.4);
         }
 
-        /* Style Chips */
         .style-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         @media (min-width: 768px) { .style-grid { grid-template-columns: repeat(3, 1fr); } }
         
@@ -167,7 +163,6 @@
             position: relative;
         }
 
-        /* Pulse Animation for Live Status */
         .pulse {
             display: inline-block;
             width: 8px;
@@ -196,7 +191,6 @@
             color: #fff;
         }
 
-        /* AI CHAT INTERFACE */
         #ai-chat-widget {
             position: fixed;
             bottom: 24px;
@@ -277,7 +271,6 @@
 
         @keyframes typing { from { transform: translateY(0); opacity: 0.3; } to { transform: translateY(-4px); opacity: 1; } }
 
-        /* Theme Selection Dots */
         .theme-dot {
             width: 28px;
             height: 28px;
@@ -289,7 +282,6 @@
         .theme-dot:hover { transform: scale(1.2); }
         .theme-dot.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
 
-        /* Enhanced Prompt Textarea */
         #enhancedPromptText {
             width: 100%;
             background: rgba(255, 255, 255, 0.05);
@@ -312,7 +304,6 @@
 <body class="theme-neon">
 
     <div id="cursor-glow"></div>
-    <div id="toast-host" class="fixed top-6 right-6 z-[999] space-y-3"></div>
     <div id="overlay" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[150] hidden" onclick="toggleMenu()"></div>
 
     <!-- AI Chat Widget -->
@@ -414,7 +405,7 @@
 
     <main class="container mx-auto px-6 pt-32 pb-20 relative z-10">
         
-        <!-- HOME PAGE -->
+        <!-- ANA SAYFA -->
         <div id="page-home" class="view active text-center">
             <div class="max-w-4xl mx-auto py-20">
                 <div class="inline-block px-4 py-2 glass-card text-[10px] heading-font text-accent mb-6 tracking-widest">v4.0 Alpha Sürümü</div>
@@ -429,7 +420,7 @@
             </div>
         </div>
 
-        <!-- PROMPT ENGINE -->
+        <!-- PROMPT MOTORU -->
         <div id="page-prompt" class="view max-w-5xl mx-auto">
             <div class="glass-card p-8 md:p-12 mb-8">
                 <div class="flex justify-between items-center mb-8">
@@ -491,7 +482,10 @@
                     </div>
 
                     <div id="enhancedPromptContainer" class="hidden">
-                        <span class="text-[10px] heading-font text-gray-500 mb-2 block tracking-[2px]">Profesyonel Prompt (Düzenlenebilir)</span>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] heading-font text-gray-500 block tracking-[2px]">Profesyonel Prompt (Düzenlenebilir)</span>
+                            <span class="text-[8px] bg-accent/20 text-accent px-2 py-1 rounded">STİL AKTİF</span>
+                        </div>
                         <textarea id="enhancedPromptText" rows="3"></textarea>
                         <button onclick="startGeneration()" class="w-full btn-glow text-lg mt-6">GÖRSELİ ÜRET</button>
                     </div>
@@ -501,14 +495,14 @@
             </div>
         </div>
 
-        <!-- IMAGE DISPLAY -->
+        <!-- GÖRSEL EKRANI -->
         <div id="page-image" class="view max-w-2xl mx-auto text-center">
             <div class="glass-card p-6 md:p-10">
                 <div class="image-container mb-8">
                     <img id="mainResult" class="w-full h-full object-cover opacity-0">
                     <div id="loadingLayer" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xl">
                         <div class="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin mb-6" style="border-top-color: var(--accent)"></div>
-                        <div id="loadingText" class="heading-font text-[10px] tracking-widest text-white/70">Sanat İşleniyor</div>
+                        <div id="loadingText" class="heading-font text-[10px] tracking-widest text-white/70">Sanat İşleniyor...</div>
                     </div>
                 </div>
 
@@ -522,7 +516,7 @@
             </div>
         </div>
 
-        <!-- GALLERY -->
+        <!-- GALERİ -->
         <div id="page-library" class="view">
             <div class="flex justify-between items-center mb-12">
                 <h2 class="heading-font text-2xl">Koleksiyon</h2>
@@ -536,7 +530,6 @@
     </main>
 
     <script>
-        // API KEY AYARI - GitHub'da çalışması için API anahtarının doğru set edilmesi gerekir.
         const apiKey = ""; 
         let activeStyle = "Disney Pixar";
         let activeRatio = "1:1";
@@ -556,19 +549,14 @@
             "Çocuk Kitabı": "Whimsical children's book illustration, soft textures, storybook aesthetic, gentle colors, charming and friendly character design."
         };
 
-        // Üstel geri çekilme fonksiyonu (Retry logic) - Statik sunucularda stabilite sağlar
+        // API retry logic
         async function fetchWithRetry(url, options, maxRetries = 5) {
             let delay = 1000;
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(url, options);
                     if (response.ok) return await response.json();
-                    
-                    // GitHub Pages ortamında 403/401 hataları genellikle API anahtarı veya CORS kaynaklıdır
-                    if (response.status === 403 || response.status === 401) {
-                        throw new Error("Yetkilendirme Hatası: API anahtarınızı kontrol edin.");
-                    }
-                    
+                    if (response.status === 403 || response.status === 401) throw new Error("Yetkilendirme Hatası: API anahtarını kontrol edin.");
                     if (response.status !== 429 && response.status < 500) break;
                 } catch (err) {
                     if (i === maxRetries - 1) throw err;
@@ -579,7 +567,7 @@
             throw new Error("API isteği başarısız oldu.");
         }
 
-        // --- AI CHAT LOGIC ---
+        // --- CHAT ---
         function toggleChat() {
             const win = document.getElementById('chat-window');
             const isVisible = win.style.display === 'flex';
@@ -595,13 +583,10 @@
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
             if (!text) return;
-
             appendMessage(text, 'user');
             input.value = '';
-            
             const typing = document.getElementById('typing-indicator');
             typing.classList.remove('hidden');
-            
             try {
                 const response = await callGemini(text);
                 typing.classList.add('hidden');
@@ -624,9 +609,8 @@
         }
 
         async function callGemini(query) {
-            const systemPrompt = "Sen Lemon YZ Stüdyosu'nun akıllı asistanısın. Nazik, yaratıcı ve teknoloji meraklısı bir kişiliğin var. Yanıtların kısa ve öz olsun.";
+            const systemPrompt = "Sen Lemon YZ Stüdyosu'nun akıllı asistanısın. Nazik ve teknoloji meraklısısın.";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            
             const data = await fetchWithRetry(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -638,7 +622,7 @@
             return data.candidates?.[0]?.content?.parts?.[0]?.text || "Anlayamadım.";
         }
 
-        // --- UI LOGIC ---
+        // --- UI & MOTOR ---
         document.addEventListener('mousemove', (e) => {
             const glow = document.getElementById('cursor-glow');
             glow.style.left = e.clientX + 'px';
@@ -679,6 +663,7 @@
             activeStyle = style;
             el.parentElement.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
+            // Stil seçildiğinde eğer profesyonel panel açıksa metni güncelle
             autoUpdateEnhanced();
         };
 
@@ -686,17 +671,26 @@
             activeRatio = ratio;
             el.parentElement.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
+            // Oran seçildiğinde eğer profesyonel panel açıksa metni güncelle
             autoUpdateEnhanced();
         };
 
+        // Dinamik güncelleme fonksiyonu
         window.autoUpdateEnhanced = () => {
             const container = document.getElementById('enhancedPromptContainer');
+            const userText = document.getElementById('promptInput').value.trim();
+            
+            // Eğer metin alanı görünürse, içeriği her stil/metin değişiminde tazele
             if (!container.classList.contains('hidden')) {
-                const userText = document.getElementById('promptInput').value.trim();
-                const fullPrompt = `${userText ? userText : 'Empty prompt'}. Style: ${stylePrompts[activeStyle]}. Aspect Ratio: ${activeRatio}. 8k, highly detailed, professional lighting.`;
-                document.getElementById('enhancedPromptText').value = fullPrompt;
+                const finalPrompt = createFullPrompt(userText);
+                document.getElementById('enhancedPromptText').value = finalPrompt;
             }
         };
+
+        function createFullPrompt(userText) {
+            const baseText = userText || 'Fantastic visual concept';
+            return `${baseText}. Style: ${stylePrompts[activeStyle]}. Aspect Ratio: ${activeRatio}. 8k resolution, highly detailed, cinematic professional lighting.`;
+        }
 
         window.enhancePromptOnly = () => {
             const userText = document.getElementById('promptInput').value.trim();
@@ -704,8 +698,9 @@
                 document.getElementById('promptInput').focus();
                 return;
             }
-            const fullPrompt = `${userText}. Style: ${stylePrompts[activeStyle]}. Aspect Ratio: ${activeRatio}. 8k, highly detailed, professional lighting.`;
-            document.getElementById('enhancedPromptText').value = fullPrompt;
+            
+            const finalPrompt = createFullPrompt(userText);
+            document.getElementById('enhancedPromptText').value = finalPrompt;
             document.getElementById('enhancedPromptContainer').classList.remove('hidden');
             document.getElementById('enhanceBtn').classList.add('hidden');
         };
@@ -727,13 +722,9 @@
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-                
-                // GitHub ortamında bazen fetch'in önbelleğe alınması sorunu için cache: 'no-cache' eklendi
                 const data = await fetchWithRetry(url, {
                     method: "POST",
-                    headers: { 
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         instances: [{ prompt: finalPrompt }],
                         parameters: { sampleCount: 1 }
@@ -749,10 +740,11 @@
                         controls.classList.remove('hidden');
                     };
                 } else {
-                    throw new Error("Görsel verisi alınamadı.");
+                    throw new Error("Görsel üretilemedi.");
                 }
             } catch (e) {
-                setTimeout(() => switchPage('prompt'), 4000);
+                loadingText.innerText = "Hata Oluştu! Lütfen tekrar deneyin.";
+                setTimeout(() => switchPage('prompt'), 3000);
             }
         };
 
@@ -761,7 +753,7 @@
             if (!img.src) return;
             const link = document.createElement('a');
             link.href = img.src;
-            link.download = `lemon-ai-${Date.now()}.png`;
+            link.download = `lemon-studio-${Date.now()}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -774,14 +766,15 @@
             lib.unshift({ id: Date.now(), url: img.src });
             localStorage.setItem('lemon_gallery', JSON.stringify(lib));
             const btn = event.currentTarget;
-            const originalText = btn.innerText;
             btn.innerText = "KAYDEDİLDİ!";
-            setTimeout(() => btn.innerText = originalText, 2000);
+            setTimeout(() => btn.innerText = "Koleksiyona Ekle", 2000);
         };
 
         window.clearGallery = () => {
-            localStorage.removeItem('lemon_gallery');
-            renderLibrary();
+            if(confirm("Tüm galeriyi silmek istediğine emin misin?")) {
+                localStorage.removeItem('lemon_gallery');
+                renderLibrary();
+            }
         };
 
         function renderLibrary() {
@@ -792,20 +785,18 @@
                     <img src="${item.url}" class="w-full h-full object-cover transition-transform group-hover:scale-110">
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button onclick="downloadSaved('${item.url}')" class="p-2 bg-white/20 rounded-full hover:bg-white/40">
-                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         </button>
                     </div>
                 </div>
-            `).join('') || '<div class="col-span-full py-20 text-center text-gray-500">Galeri boş. Yeni görseller üretmeye başla!</div>';
+            `).join('') || '<div class="col-span-full py-20 text-center text-gray-500">Galeri boş. Tasarımların burada görünecek.</div>';
         }
 
         window.downloadSaved = (url) => {
             const link = document.createElement('a');
             link.href = url;
-            link.download = `lemon-gallery-${Date.now()}.png`;
-            document.body.appendChild(link);
+            link.download = `lemon-gallery.png`;
             link.click();
-            document.body.removeChild(link);
         };
 
         window.onload = () => {
