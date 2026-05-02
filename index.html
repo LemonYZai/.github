@@ -2,372 +2,744 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LEMON YZ - PROMPT ENGINE PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LEMON YZ - 3D GÖRSEL STÜDYOSU</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700;900&family=Space+Grotesk:wght@300;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Syncopate:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --font-lemon: 'League Spartan', sans-serif;
-            --font-body: 'Space Grotesk', sans-serif;
-            --accent: #facc15;
-            --bg-dark: #0b0b0b;
-            --card-bg: rgba(23, 23, 23, 0.7);
+            --font-display: 'Syncopate', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --accent: #00f2ff;
+            --accent-secondary: #7000ff;
+            --bg-dark: #030305;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
         }
+
+        /* Genişletilmiş Tema Renkleri */
+        body.theme-neon { --accent: #00f2ff; --accent-secondary: #7000ff; --accent-rgb: 0, 242, 255; }
+        body.theme-lava { --accent: #ff0000; --accent-secondary: #ff8c00; --accent-rgb: 255, 0, 0; }
+        body.theme-cyber { --accent: #bf00ff; --accent-secondary: #ff00ff; --accent-rgb: 191, 0, 255; }
+        body.theme-ocean { --accent: #00008b; --accent-secondary: #00e5ff; --accent-rgb: 0, 0, 139; }
+        body.theme-forest { --accent: #006400; --accent-secondary: #ccff00; --accent-rgb: 0, 100, 0; }
+        body.theme-midnight { --accent: #1e293b; --accent-secondary: #94a3b8; --accent-rgb: 30, 41, 59; }
 
         body {
             background-color: var(--bg-dark);
-            color: #f3f4f6;
+            color: #e2e8f0;
             font-family: var(--font-body);
             min-height: 100vh;
+            margin: 0;
             overflow-x: hidden;
+            transition: all 0.5s ease;
         }
 
-        .lemon-milk {
-            font-family: var(--font-lemon);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 900;
+        /* Mouse Follower */
+        #cursor-glow {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(var(--accent-rgb), 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            transform: translate(-50%, -50%);
+            transition: background 0.5s ease;
         }
 
-        .gemini-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 28px;
-            transition: all 0.3s ease;
+        .heading-font { font-family: var(--font-display); text-transform: uppercase; }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
-        .gemini-card:hover {
-            border-color: rgba(250, 204, 21, 0.3);
-        }
-
+        /* Sidebar */
         .sidebar {
             width: 280px;
-            background: rgba(15, 15, 15, 0.95);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s ease;
+            background: rgba(5, 5, 10, 0.95);
+            border-right: 1px solid var(--card-border);
+            position: fixed;
+            inset-y: 0;
+            left: 0;
+            z-index: 200;
+            transform: translateX(-100%);
+            transition: transform 0.5s cubic-bezier(0.8, 0, 0.2, 1);
         }
+        .sidebar.open { transform: translateX(0); }
 
-        .style-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 12px;
-        }
-
-        .style-chip {
-            padding: 12px 8px;
-            text-align: center;
+        .nav-link {
+            padding: 14px 20px;
             border-radius: 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #94a3b8;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: 0.2s;
+        }
+        .nav-link.active {
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            color: #000;
+            box-shadow: 0 10px 20px -5px rgba(var(--accent-rgb), 0.4);
         }
 
-        .style-chip.active {
+        /* Style Chips */
+        .style-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        @media (min-width: 768px) { .style-grid { grid-template-columns: repeat(3, 1fr); } }
+        
+        .style-btn {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 14px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 10px;
+            font-weight: 800;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+        .style-btn:hover { border-color: var(--accent); color: #fff; }
+        .style-btn.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            border-color: transparent;
+            color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
+        }
+
+        .btn-glow {
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            color: #000;
+            font-weight: 800;
+            padding: 18px;
+            border-radius: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-glow::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+        .btn-glow:hover::after { left: 100%; }
+
+        .view { display: none; animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .view.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .image-container {
+            aspect-ratio: 1/1;
+            background: linear-gradient(45deg, #111, #050505);
+            border-radius: 30px;
+            overflow: hidden;
+            border: 2px solid var(--card-border);
+            position: relative;
+        }
+
+        /* Pulse Animation for Live Status */
+        .pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
+
+        .inspiration-chip {
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            font-size: 11px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid transparent;
+        }
+        .inspiration-chip:hover {
+            background: rgba(var(--accent-rgb), 0.1);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* AI CHAT INTERFACE */
+        #ai-chat-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        #chat-window {
+            width: 350px;
+            height: 500px;
+            margin-bottom: 16px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: chatOpen 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes chatOpen {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); transform-origin: bottom right; }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        #chat-trigger {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(var(--accent-rgb), 0.3);
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+        }
+
+        #chat-trigger svg { width: 32px; height: 32px; color: #000; }
+
+        .chat-msg {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .msg-ai {
+            background: rgba(255,255,255,0.05);
+            color: #e2e8f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg-user {
             background: var(--accent);
             color: #000;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
             font-weight: 600;
-            border-color: var(--accent);
-            transform: scale(1.05);
         }
 
-        .control-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            outline: none;
-        }
+        #chat-messages::-webkit-scrollbar { width: 4px; }
+        #chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-        .control-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
+        .typing-dot {
+            width: 6px;
+            height: 6px;
             background: var(--accent);
             border-radius: 50%;
+            display: inline-block;
+            margin-right: 3px;
+            animation: typing 1s infinite alternate;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing { from { transform: translateY(0); opacity: 0.3; } to { transform: translateY(-4px); opacity: 1; } }
+
+        /* Theme Selection Dots */
+        .theme-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+            border: 2px solid transparent;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .theme-dot:hover { transform: scale(1.2); }
+        .theme-dot.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
 
-        .prompt-textarea {
-            background: transparent;
-            resize: none;
-            border: none;
-            width: 100%;
-            color: #fff;
-            font-size: 1.1rem;
-            line-height: 1.6;
-        }
-
-        .prompt-textarea:focus {
-            outline: none;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        #side-tools {
-            transform: translateX(-100%);
-        }
-        #side-tools.open {
-            transform: translateX(0);
-        }
-
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-
-        .loading-shimmer {
-            background: linear-gradient(90deg, transparent, rgba(250, 204, 21, 0.1), transparent);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
     </style>
 </head>
-<body class="flex">
+<body class="theme-neon">
 
-    <!-- Sol Araç Paneli (Özgün Terimler) -->
-    <aside id="side-tools" class="fixed lg:static inset-y-0 left-0 z-50 sidebar p-6 flex flex-col gap-8 custom-scrollbar overflow-y-auto">
-        <div class="flex items-center justify-between">
-            <span class="lemon-milk text-yellow-400 text-lg">LEMON YZ</span>
-            <button onclick="toggleSidebar()" class="lg:hidden text-gray-400">✕</button>
+    <div id="cursor-glow"></div>
+    <div id="toast-host" class="fixed top-6 right-6 z-[999] space-y-3"></div>
+    <div id="overlay" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[150] hidden" onclick="toggleMenu()"></div>
+
+    <!-- AI Chat Widget -->
+    <div id="ai-chat-widget">
+        <div id="chat-window" class="glass-card flex flex-col border-white/10 shadow-2xl">
+            <div class="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center text-xs font-bold text-black">L</div>
+                    <div>
+                        <div class="text-xs font-bold text-white tracking-wider uppercase">Lemon Asistan</div>
+                        <div class="text-[10px] text-green-500 font-bold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Çevrimiçi
+                        </div>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="text-gray-500 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-5 flex flex-col">
+                <div class="chat-msg msg-ai">
+                    Selam! Ben Lemon YZ asistanı. Hayalindeki görseli oluşturmana yardım edebilirim veya sadece sohbet edebiliriz. Bugün ne tasarlayalım?
+                </div>
+            </div>
+
+            <div id="typing-indicator" class="px-5 py-2 hidden">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+
+            <div class="p-4 bg-white/5 border-t border-white/5">
+                <div class="relative">
+                    <input type="text" id="chatInput" onkeypress="handleChatKey(event)" class="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm outline-none focus:border-accent transition-all placeholder:text-gray-600" placeholder="Bir şeyler yaz...">
+                    <button onclick="sendMessage()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-black hover:scale-105 transition-transform">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="chat-trigger" onclick="toggleChat()" class="hover:scale-110 active:scale-95 transition-all">
+            <svg id="trigger-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar p-8 flex flex-col">
+        <div class="flex items-center justify-between mb-12">
+            <div class="heading-font text-white text-xl">LEMON<span style="color: var(--accent)">.Studio</span></div>
+            <button onclick="toggleMenu()" class="text-gray-500">✕</button>
+        </div>
+        
+        <nav class="flex-1">
+            <div onclick="switchPage('home')" id="nav-home" class="nav-link active">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Keşfet
+            </div>
+            <div onclick="switchPage('prompt')" id="nav-prompt" class="nav-link">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Motor
+            </div>
+            <div onclick="switchPage('library')" id="nav-library" class="nav-link">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Galeri
+            </div>
+        </nav>
+
+        <div class="p-6 glass-card mb-8">
+            <span class="text-[10px] heading-font text-gray-500 mb-2 block">Sistem Durumu</span>
+            <div class="flex items-center text-xs">
+                <span class="pulse"></span> Çevrimiçi: <span id="onlineCount" class="ml-1 font-bold">1,248</span>
+            </div>
         </div>
 
-        <div>
-            <h3 class="lemon-milk text-[10px] text-gray-500 mb-6 tracking-widest">MOTOR SEÇENEKLERİ</h3>
-            <nav class="space-y-4">
-                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">G</div>
-                    <span class="text-sm font-medium">Görsel Üreteci</span>
-                </div>
-                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
-                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">T</div>
-                    <span class="text-sm font-medium">Tasarım Aracı</span>
-                </div>
-                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
-                    <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-all">V</div>
-                    <span class="text-sm font-medium">Video Üreteci</span>
-                </div>
-            </nav>
-        </div>
-
-        <div class="mt-auto p-4 gemini-card bg-yellow-400/5 border-yellow-400/20">
-            <p class="text-[10px] text-yellow-400/70 lemon-milk mb-2">İPUCU</p>
-            <p class="text-xs text-gray-400 leading-relaxed">Daha iyi sonuçlar için "Işıklandırma" ayarlarını deneyin.</p>
+        <div class="pt-8 border-t border-white/5">
+            <span class="text-[10px] heading-font text-gray-500 mb-4 block">Renk Modları</span>
+            <div class="grid grid-cols-4 gap-3">
+                <div onclick="setTheme('neon')" class="theme-dot bg-cyan-400 active" id="dot-neon" title="Neon"></div>
+                <div onclick="setTheme('lava')" class="theme-dot bg-red-600" id="dot-lava" title="Ateş"></div>
+                <div onclick="setTheme('cyber')" class="theme-dot bg-purple-500" id="dot-cyber" title="Cyber"></div>
+                <div onclick="setTheme('ocean')" class="theme-dot bg-blue-700" id="dot-ocean" title="Okyanus"></div>
+                <div onclick="setTheme('forest')" class="theme-dot bg-green-800" id="dot-forest" title="Doğa"></div>
+                <div onclick="setTheme('midnight')" class="theme-dot bg-slate-700" id="dot-midnight" title="Gece"></div>
+            </div>
         </div>
     </aside>
 
-    <!-- Ana İçerik -->
-    <main class="flex-1 flex flex-col items-center p-4 lg:p-10 max-h-screen overflow-y-auto custom-scrollbar">
+    <header class="fixed top-0 w-full p-6 z-[100] flex justify-between items-center bg-black/10 backdrop-blur-sm">
+        <button onclick="toggleMenu()" class="w-12 h-12 glass-card flex items-center justify-center hover:scale-110 active:scale-95">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+        </button>
+        <div class="heading-font text-white tracking-[4px] cursor-default">LEMON<span style="color: var(--accent)">YZ</span></div>
+        <div class="flex items-center gap-2 glass-card px-4 py-2">
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="text-[10px] font-bold text-gray-400" id="stats-counter">42.5k Üretim</span>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pt-32 pb-20 relative z-10">
         
-        <!-- Header -->
-        <header class="w-full max-w-4xl flex items-center justify-between mb-12">
-            <button onclick="toggleSidebar()" class="p-3 gemini-card hover:bg-white/5">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            </button>
-            <div class="text-center">
-                <h1 class="lemon-milk text-4xl tracking-tighter">LEMON<span class="text-yellow-400">YZ</span></h1>
-            </div>
-            <div class="flex gap-2">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 to-orange-500 flex items-center justify-center font-bold text-black">A</div>
-            </div>
-        </header>
-
-        <div class="w-full max-w-4xl space-y-8">
-            
-            <!-- Ana Giriş Alanı -->
-            <section class="gemini-card p-8">
-                <div class="flex items-start gap-4">
-                    <div class="pt-2">
-                        <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4l2 2H4v10h10v-4l2 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/></svg>
-                    </div>
-                    <div class="flex-1">
-                        <label class="lemon-milk text-[10px] text-gray-500 mb-2 block">BURAYA HAYALİNİ YAZ</label>
-                        <textarea id="userInput" class="prompt-textarea h-32" placeholder="Örn: Karlı dağların tepesinde gizemli bir tapınak..."></textarea>
-                    </div>
-                </div>
-
-                <!-- Kontroller -->
-                <div class="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-4 items-center justify-between">
-                    <div class="flex gap-2 no-select">
-                        <button onclick="updateType('image')" id="type-image" class="px-4 py-2 rounded-full text-xs font-medium transition-all bg-yellow-400 text-black">Görsel</button>
-                        <button onclick="updateType('video')" id="type-video" class="px-4 py-2 rounded-full text-xs font-medium transition-all bg-white/5 hover:bg-white/10">Video</button>
-                    </div>
-                    <div class="flex items-center gap-6 text-xs text-gray-400">
-                        <div class="flex items-center gap-2">
-                            <span>Vurgu Gücü:</span>
-                            <input type="range" id="stylizeRange" class="control-slider w-24" min="0" max="1000" value="300">
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span>Değişkenlik:</span>
-                            <input type="range" id="chaosRange" class="control-slider w-24" min="0" max="100" value="0">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Stil ve Negatif Prompt Paneli -->
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="md:col-span-2 gemini-card p-6">
-                    <h3 class="lemon-milk text-[10px] text-gray-500 mb-4 tracking-widest">STİL SEÇENEKLERİ</h3>
-                    <div class="style-grid custom-scrollbar overflow-y-auto max-h-[300px] pr-2">
-                        <div onclick="selectStyle(this, 'Cinematic')" class="style-chip active"><span class="text-[11px] lemon-milk">Sinematik</span></div>
-                        <div onclick="selectStyle(this, 'Photorealistic')" class="style-chip"><span class="text-[11px] lemon-milk">Gerçekçi</span></div>
-                        <div onclick="selectStyle(this, 'Cyberpunk')" class="style-chip"><span class="text-[11px] lemon-milk">Gelecekçi</span></div>
-                        <div onclick="selectStyle(this, 'Fantasy')" class="style-chip"><span class="text-[11px] lemon-milk">Fantastik</span></div>
-                        <div onclick="selectStyle(this, 'Anime')" class="style-chip"><span class="text-[11px] lemon-milk">Çizim</span></div>
-                        <div onclick="selectStyle(this, 'Animation')" class="style-chip"><span class="text-[11px] lemon-milk">3D Animasyon</span></div>
-                        <div onclick="selectStyle(this, 'Ink Painting')" class="style-chip"><span class="text-[11px] lemon-milk">Mürekkep</span></div>
-                        <div onclick="selectStyle(this, 'Oil Painting')" class="style-chip"><span class="text-[11px] lemon-milk">Yağlı Boya</span></div>
-                        <div onclick="selectStyle(this, 'Digital Art')" class="style-chip"><span class="text-[11px] lemon-milk">Dijital Sanat</span></div>
-                        <div onclick="selectStyle(this, 'Graphic')" class="style-chip"><span class="text-[11px] lemon-milk">Grafik</span></div>
-                        <div onclick="selectStyle(this, 'Sketch')" class="style-chip"><span class="text-[11px] lemon-milk">Eskiz</span></div>
-                        <div onclick="selectStyle(this, 'Minimalist')" class="style-chip"><span class="text-[11px] lemon-milk">Yalın</span></div>
-                    </div>
-                </div>
-                <div class="gemini-card p-6 flex flex-col">
-                    <h3 class="lemon-milk text-[10px] text-gray-500 mb-4 tracking-widest">İSTENMEYENLER</h3>
-                    <textarea id="negativePrompt" class="flex-1 bg-white/5 rounded-2xl p-4 text-xs text-gray-400 focus:outline-none focus:ring-1 focus:ring-yellow-400/50" placeholder="Örn: (bulanıklık, düşük kalite, yazı, filigran...)"></textarea>
+        <!-- HOME PAGE -->
+        <div id="page-home" class="view active text-center">
+            <div class="max-w-4xl mx-auto py-20">
+                <div class="inline-block px-4 py-2 glass-card text-[10px] heading-font text-accent mb-6 tracking-widest">v4.0 Alpha Sürümü</div>
+                <h1 class="heading-font text-5xl md:text-8xl mb-8 leading-tight">
+                    GELECEĞİ <br> <span class="italic" style="color: var(--accent)">TASARLA.</span>
+                </h1>
+                <p class="text-gray-400 text-lg md:text-xl mb-12 font-light max-w-2xl mx-auto">Sadece bir cümle yaz ve 3D dünyaların kapısını arala. LemonYZ ile hayallerin pikselleşiyor.</p>
+                <div class="flex flex-col md:flex-row justify-center gap-4">
+                    <button onclick="switchPage('prompt')" class="btn-glow px-12 py-5 text-sm">Hemen Başla</button>
+                    <button onclick="switchPage('library')" class="glass-card px-12 py-5 text-sm font-bold hover:bg-white/10">Galeriyi Gez</button>
                 </div>
             </div>
-
-            <!-- Sonuç Paneli -->
-            <section class="relative group">
-                <div id="outputContainer" class="gemini-card p-8 min-h-[200px] border-dashed border-2 border-white/10 flex flex-col justify-center items-center text-center">
-                    <div id="outputDisplay" class="text-gray-400 leading-relaxed max-w-2xl">
-                        Motor çalışmaya hazır. Bir fikir girin ve "Oluştur" butonuna basın.
-                    </div>
-                </div>
-
-                <!-- Alt İşlem Çubuğu -->
-                <div class="mt-8 flex gap-4">
-                    <button onclick="processAI()" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black lemon-milk py-5 rounded-2xl transition-all shadow-xl shadow-yellow-400/10 flex items-center justify-center gap-3">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        OLUŞTUR
-                    </button>
-                    <button onclick="copyToClipboard()" class="gemini-card px-8 flex items-center justify-center hover:bg-white/10">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                    </button>
-                </div>
-                <p id="copyFeedback" class="text-center text-yellow-400 lemon-milk text-[10px] mt-4 opacity-0 transition-opacity">KOPYALANDI</p>
-            </section>
         </div>
 
-        <footer class="mt-20 w-full max-w-4xl py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-gray-600">
-            <span class="lemon-milk text-[10px] tracking-widest">LEMON YZ SİSTEMLERİ // GÜVENLİ SÜRÜM</span>
-            <div class="flex gap-6 mt-4 md:mt-0">
-                <span class="text-xs hover:text-white cursor-pointer">Gizlilik</span>
-                <span class="text-xs hover:text-white cursor-pointer">Şartlar</span>
-                <span class="text-xs hover:text-white cursor-pointer">Destek</span>
+        <!-- PROMPT ENGINE -->
+        <div id="page-prompt" class="view max-w-5xl mx-auto">
+            <div class="glass-card p-8 md:p-12 mb-8">
+                <div class="flex justify-between items-center mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-8 rounded-full" style="background: var(--accent)"></div>
+                        <h2 class="heading-font text-xl">Prompt Mühendisi</h2>
+                    </div>
+                </div>
+
+                <div class="space-y-10">
+                    <div>
+                        <textarea id="promptInput" rows="4" class="w-full bg-white/5 border border-white/10 rounded-3xl p-6 text-xl outline-none focus:border-accent transition-all placeholder:text-gray-600 mb-4" placeholder="Hayalindeki sahneyi betimle..."></textarea>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="text-[10px] heading-font text-gray-500 mr-2 flex items-center">İlham Al:</span>
+                            <div onclick="applyInspiration('Siberpunk şehirde neon ışıkları altında bir kedi')" class="inspiration-chip">Cyber Cat</div>
+                            <div onclick="applyInspiration('Astronotun kaskında yansıyan uzak bir galaksi')" class="inspiration-chip">Galactic Eye</div>
+                            <div onclick="applyInspiration('Bulutların üzerinde yüzen antik bir kale')" class="inspiration-chip">Floating Castle</div>
+                            <div onclick="applyInspiration('Dijital bir ormanda kristal ağaçlar')" class="inspiration-chip">Crystal Forest</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] heading-font text-gray-500 mb-5 block tracking-[2px]">Görsel Stil</span>
+                        <div class="style-grid" id="styleBox">
+                            <div onclick="selectStyle(this, 'Disney Pixar')" class="style-btn active">3D PIXAR</div>
+                            <div onclick="selectStyle(this, 'Klasik Amerikan')" class="style-btn">KLASİK AMERİKAN</div>
+                            <div onclick="selectStyle(this, 'Sinematik')" class="style-btn">SİNEMATİK</div>
+                            <div onclick="selectStyle(this, 'Yarı Gerçekçi')" class="style-btn">YARI GERÇEKÇİ</div>
+                            <div onclick="selectStyle(this, 'Manga/Anime')" class="style-btn">MANGA/ANİME</div>
+                            <div onclick="selectStyle(this, 'Noir')" class="style-btn">NOIR</div>
+                            <div onclick="selectStyle(this, 'Grafik Roman')" class="style-btn">GRAFİK ROMAN</div>
+                            <div onclick="selectStyle(this, 'Dijital Boyama')" class="style-btn">DİJİTAL BOYAMA</div>
+                            <div onclick="selectStyle(this, 'Sulu Boyama')" class="style-btn">SULU BOYAMA</div>
+                            <div onclick="selectStyle(this, 'Minimalist')" class="style-btn">MİNİMALİST</div>
+                            <div onclick="selectStyle(this, 'Mürekkep Çizimi')" class="style-btn">MÜREKKEP ÇİZİMİ</div>
+                            <div onclick="selectStyle(this, 'Çocuk Kitabı')" class="style-btn">ÇOCUK KİTABI</div>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-12">
+                        <div>
+                            <span class="text-[10px] heading-font text-gray-500 mb-5 block tracking-[2px]">Boyut Oranı</span>
+                            <div class="flex gap-3">
+                                <div onclick="setRatio(this, '1:1')" class="style-btn flex-1 active">1:1</div>
+                                <div onclick="setRatio(this, '16:9')" class="style-btn flex-1">16:9</div>
+                                <div onclick="setRatio(this, '9:16')" class="style-btn flex-1">9:16</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[10px] heading-font text-gray-500 mb-5 block tracking-[2px]">Kalite Modu</span>
+                            <div class="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 h-[50px]">
+                                <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div class="h-full w-[85%]" style="background: var(--accent)"></div>
+                                </div>
+                                <span class="text-xs font-bold text-accent">PRO 4K</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="enhancedPromptContainer" class="hidden">
+                        <span class="text-[10px] heading-font text-gray-500 mb-2 block tracking-[2px]">Profesyonel Prompt</span>
+                        <div id="enhancedPromptText" class="p-4 bg-white/5 rounded-xl border border-white/10 text-sm text-gray-300 italic"></div>
+                        <button onclick="startGeneration()" class="w-full btn-glow text-lg mt-6">GÖRSELİ ÜRET</button>
+                    </div>
+
+                    <button id="enhanceBtn" onclick="enhancePromptOnly()" class="w-full btn-glow text-lg">Profesyonel Prompt Oluştur</button>
+                </div>
             </div>
-        </footer>
+        </div>
+
+        <!-- IMAGE DISPLAY -->
+        <div id="page-image" class="view max-w-2xl mx-auto text-center">
+            <div class="glass-card p-6 md:p-10">
+                <div class="image-container mb-8">
+                    <img id="mainResult" class="w-full h-full object-cover opacity-0">
+                    <div id="loadingLayer" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xl">
+                        <div class="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin mb-6" style="border-top-color: var(--accent)"></div>
+                        <div id="loadingText" class="heading-font text-[10px] tracking-widest text-white/70">Sanat İşleniyor</div>
+                    </div>
+                </div>
+
+                <div id="imageControls" class="hidden space-y-4">
+                    <div class="flex gap-4">
+                        <button onclick="downloadImage()" class="flex-1 py-5 rounded-2xl bg-white/10 heading-font text-[10px] hover:bg-white/20 border border-white/5">İndir</button>
+                        <button onclick="saveToGallery()" class="flex-1 btn-glow py-5 text-[10px]">Koleksiyona Ekle</button>
+                    </div>
+                    <button onclick="switchPage('prompt')" class="text-[10px] heading-font text-gray-500 hover:text-white transition-colors">Yeni Tasarım Başlat</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GALLERY -->
+        <div id="page-library" class="view">
+            <div class="flex justify-between items-center mb-12">
+                <h2 class="heading-font text-2xl">Koleksiyon</h2>
+                <div class="flex gap-4">
+                    <button onclick="clearGallery()" class="text-[10px] heading-font text-red-500/60 hover:text-red-500">Tümünü Sil</button>
+                </div>
+            </div>
+            <div id="galleryGrid" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+        </div>
+
     </main>
 
     <script>
-        let selectedMode = 'image';
-        let selectedStyle = 'Cinematic';
+        const apiKey = "";
+        let activeStyle = "Disney Pixar";
+        let activeRatio = "1:1";
+        let currentFullPrompt = "";
 
-        // Telif hakkı içermeyen, genel sanat tanımları
-        const styleData = {
-            'Cinematic': 'cinematic lighting, dramatic shadows, professional film look, high dynamic range, detailed textures',
-            'Photorealistic': 'photorealistic, ultra-high resolution, sharp focus, natural lighting, highly detailed',
-            'Cyberpunk': 'neon lighting, high-tech urban aesthetic, futuristic atmosphere, vibrant glow, nighttime city vibes',
-            'Fantasy': 'ethereal lighting, magical atmosphere, intricate detail, mystical art style, epic scale',
-            'Anime': 'stylized hand-drawn look, vibrant cell-shaded colors, clean line art, high-fidelity art',
-            'Animation': 'high-end 3D character style, professional render, smooth surfaces, expressive lighting',
-            'Ink Painting': 'traditional ink wash style, flowing lines, minimalist aesthetic, vintage texture',
-            'Oil Painting': 'rich oil textures, visible brushstrokes, classical masterpiece style, heavy impasto',
-            'Digital Art': 'modern digital painting, clean execution, smooth gradients, trending professional art',
-            'Graphic': 'bold graphic design, high contrast, clean vector aesthetic, stylized composition',
-            'Sketch': 'detailed pencil drawing, hand-drawn sketch, artistic texture, fine shading',
-            'Minimalist': 'clean lines, negative space, simple forms, limited color palette, elegant'
+        const stylePrompts = {
+            "Disney Pixar": "3D render, Pixar animation style, cinematic lighting, cute character design, hyper-detailed textures, volumetric lighting, vibrant colors, 8k masterpiece.",
+            "Klasik Amerikan": "Golden age American illustration style, Norman Rockwell aesthetic, warm nostalgic lighting, oil on canvas, Americana vibe, detailed storytelling.",
+            "Sinematik": "Movie still, cinematic lighting, anamorphic lens flares, high dynamic range, moody atmosphere, shallow depth of field, 35mm film grain.",
+            "Yarı Gerçekçi": "Semirealistic style, stylized realism, clean lines, professional digital art, balanced textures, vibrant yet grounded colors.",
+            "Manga/Anime": "High-quality anime art style, Japanese manga aesthetic, cell-shaded, dynamic composition, expressive features, vibrant anime lighting.",
+            "Noir": "Film Noir aesthetic, black and white, high contrast, dramatic shadows, chiascurro lighting, mysterious atmosphere, rainy urban setting.",
+            "Grafik Roman": "Graphic novel art, heavy ink outlines, stylized shadows, bold comic book aesthetic, gritty textures, dramatic panel-style lighting.",
+            "Dijital Boyama": "Professional digital painting, concept art style, smooth gradients, layered textures, fantasy art aesthetic, brush stroke details.",
+            "Sulu Boyama": "Watercolor painting, wet-on-wet technique, soft pastel colors, paper texture, artistic ink splatters, ethereal and fluid aesthetic.",
+            "Minimalist": "Minimalist art style, flat design, limited color palette, clean geometric shapes, negative space focus, modern aesthetic.",
+            "Mürekkep Çizimi": "Intricate ink drawing, cross-hatching, fine line work, hand-drawn aesthetic, high detail black ink on parchment.",
+            "Çocuk Kitabı": "Whimsical children's book illustration, soft textures, storybook aesthetic, gentle colors, charming and friendly character design."
         };
 
-        function toggleSidebar() {
-            document.getElementById('side-tools').classList.toggle('open');
-            document.getElementById('side-tools').classList.toggle('fixed');
-        }
-
-        function updateType(type) {
-            selectedMode = type;
-            document.getElementById('type-image').className = type === 'image' 
-                ? 'px-4 py-2 rounded-full text-xs font-medium bg-yellow-400 text-black' 
-                : 'px-4 py-2 rounded-full text-xs font-medium bg-white/5 hover:bg-white/10';
-            document.getElementById('type-video').className = type === 'video' 
-                ? 'px-4 py-2 rounded-full text-xs font-medium bg-yellow-400 text-black' 
-                : 'px-4 py-2 rounded-full text-xs font-medium bg-white/5 hover:bg-white/10';
-        }
-
-        function selectStyle(el, style) {
-            selectedStyle = style;
-            document.querySelectorAll('.style-chip').forEach(chip => chip.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function processAI() {
-            const input = document.getElementById('userInput').value.trim();
-            const neg = document.getElementById('negativePrompt').value.trim();
-            const stylize = document.getElementById('stylizeRange').value;
-            const chaos = document.getElementById('chaosRange').value;
-            const output = document.getElementById('outputDisplay');
-            const container = document.getElementById('outputContainer');
-            
-            if (!input) {
-                output.innerText = "Lütfen bir açıklama girin...";
-                return;
+        // --- AI CHAT LOGIC ---
+        function toggleChat() {
+            const win = document.getElementById('chat-window');
+            const isVisible = win.style.display === 'flex';
+            win.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible) {
+                document.getElementById('chatInput').focus();
+                const msgBox = document.getElementById('chat-messages');
+                msgBox.scrollTop = msgBox.scrollHeight;
             }
+        }
 
-            container.classList.add('loading-shimmer');
-            output.innerHTML = '<span class="lemon-milk text-yellow-400 animate-pulse text-xs">Sistem Analiz Ediliyor...</span>';
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
 
-            setTimeout(() => {
-                const styleTags = styleData[selectedStyle];
-                const baseSubject = `A professional ${selectedStyle.toLowerCase()} work of ${input}`;
-                
-                let finalPrompt = `${baseSubject}, ${styleTags}, high quality, detailed`;
-                
-                if (neg) finalPrompt += `, --exclude ${neg}`;
-                
-                if (selectedMode === 'image') {
-                    finalPrompt += ` --ratio 16:9 --style-strength ${stylize} --variance ${chaos}`;
-                } else {
-                    finalPrompt += ` --movement 5 --ratio 16:9 --upscale`;
+            appendMessage(text, 'user');
+            input.value = '';
+            
+            const typing = document.getElementById('typing-indicator');
+            typing.classList.remove('hidden');
+            
+            try {
+                const response = await callGemini(text);
+                typing.classList.add('hidden');
+                appendMessage(response, 'ai');
+            } catch (err) {
+                typing.classList.add('hidden');
+                appendMessage("Üzgünüm, şu an bağlantı kuramıyorum.", 'ai');
+            }
+        }
+
+        function handleChatKey(e) { if (e.key === 'Enter') sendMessage(); }
+
+        function appendMessage(text, sender) {
+            const box = document.getElementById('chat-messages');
+            const msg = document.createElement('div');
+            msg.className = `chat-msg msg-${sender}`;
+            msg.innerText = text;
+            box.appendChild(msg);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function callGemini(query) {
+            const systemPrompt = "Sen Lemon YZ Stüdyosu'nun akıllı asistanısın. Nazik, yaratıcı ve teknoloji meraklısı bir kişiliğin var. Yanıtların kısa ve öz olsun.";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: query }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                })
+            });
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || "Anlayamadım.";
+        }
+
+        // --- UI LOGIC ---
+        document.addEventListener('mousemove', (e) => {
+            const glow = document.getElementById('cursor-glow');
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+
+        window.setTheme = (theme) => {
+            document.body.className = `theme-${theme}`;
+            document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+            document.getElementById(`dot-${theme}`).classList.add('active');
+            localStorage.setItem('lemon_theme_v6', theme);
+        };
+
+        window.switchPage = (id) => {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            document.getElementById(`page-${id}`).classList.add('active');
+            document.getElementById(`nav-${id}`)?.classList.add('active');
+            if (id === 'library') renderLibrary();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (document.getElementById('sidebar').classList.contains('open')) toggleMenu();
+        };
+
+        window.toggleMenu = () => {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('hidden');
+        };
+
+        window.applyInspiration = (text) => {
+            document.getElementById('promptInput').value = text;
+        };
+
+        window.selectStyle = (el, style) => {
+            activeStyle = style;
+            el.parentElement.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        };
+
+        window.setRatio = (el, ratio) => {
+            activeRatio = ratio;
+            el.parentElement.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        };
+
+        window.enhancePromptOnly = () => {
+            const userText = document.getElementById('promptInput').value.trim();
+            if (!userText) return;
+            currentFullPrompt = `${userText}. Stil: ${stylePrompts[activeStyle]}. Oran: ${activeRatio}. 8k, cinematic.`;
+            document.getElementById('enhancedPromptText').innerText = currentFullPrompt;
+            document.getElementById('enhancedPromptContainer').classList.remove('hidden');
+            document.getElementById('enhanceBtn').classList.add('hidden');
+        };
+
+        window.startGeneration = async () => {
+            switchPage('image');
+            const loader = document.getElementById('loadingLayer');
+            const img = document.getElementById('mainResult');
+            const controls = document.getElementById('imageControls');
+            loader.classList.remove('hidden');
+            img.classList.add('opacity-0');
+            controls.classList.add('hidden');
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        instances: [{ prompt: currentFullPrompt }],
+                        parameters: { sampleCount: 1 }
+                    })
+                });
+                const data = await res.json();
+                if (data.predictions?.[0]?.bytesBase64Encoded) {
+                    img.src = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                    img.onload = () => {
+                        loader.classList.add('hidden');
+                        img.classList.remove('opacity-0');
+                        controls.classList.remove('hidden');
+                    };
                 }
+            } catch (e) { switchPage('prompt'); }
+        };
 
-                container.classList.remove('loading-shimmer');
-                output.innerText = finalPrompt;
-            }, 1200);
+        // --- FIX: MISSING FUNCTIONS ---
+        window.downloadImage = () => {
+            const img = document.getElementById('mainResult');
+            if (!img.src) return;
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = `lemon-ai-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.saveToGallery = () => {
+            const img = document.getElementById('mainResult');
+            if (!img.src) return;
+            const lib = JSON.parse(localStorage.getItem('lemon_gallery') || '[]');
+            lib.unshift({ id: Date.now(), url: img.src });
+            localStorage.setItem('lemon_gallery', JSON.stringify(lib));
+            // Feedback for UI
+            const btn = event.currentTarget;
+            const originalText = btn.innerText;
+            btn.innerText = "KAYDEDİLDİ!";
+            setTimeout(() => btn.innerText = originalText, 2000);
+        };
+
+        window.clearGallery = () => {
+            localStorage.removeItem('lemon_gallery');
+            renderLibrary();
+        };
+
+        function renderLibrary() {
+            const grid = document.getElementById('galleryGrid');
+            const lib = JSON.parse(localStorage.getItem('lemon_gallery') || '[]');
+            grid.innerHTML = lib.map(item => `
+                <div class="glass-card overflow-hidden group aspect-square relative">
+                    <img src="${item.url}" class="w-full h-full object-cover transition-transform group-hover:scale-110">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button onclick="downloadSaved('${item.url}')" class="p-2 bg-white/20 rounded-full hover:bg-white/40">
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('') || '<div class="col-span-full py-20 text-center text-gray-500">Galeri boş. Yeni görseller üretmeye başla!</div>';
         }
 
-        function copyToClipboard() {
-            const text = document.getElementById('outputDisplay').innerText;
-            if (text.length < 10) return;
+        window.downloadSaved = (url) => {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `lemon-gallery-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
 
-            const temp = document.createElement("textarea");
-            temp.value = text;
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand("copy");
-            document.body.removeChild(temp);
-
-            const feedback = document.getElementById('copyFeedback');
-            feedback.style.opacity = '1';
-            setTimeout(() => feedback.style.opacity = '0', 2000);
-        }
+        window.onload = () => {
+            const saved = localStorage.getItem('lemon_theme_v6') || 'neon';
+            setTheme(saved);
+        };
     </script>
 </body>
 </html>
