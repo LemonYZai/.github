@@ -556,14 +556,20 @@
             "Çocuk Kitabı": "Whimsical children's book illustration, soft textures, storybook aesthetic, gentle colors, charming and friendly character design."
         };
 
-        // Üstel geri çekilme fonksiyonu (Retry logic)
+        // Üstel geri çekilme fonksiyonu (Retry logic) - Statik sunucularda stabilite sağlar
         async function fetchWithRetry(url, options, maxRetries = 5) {
             let delay = 1000;
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(url, options);
                     if (response.ok) return await response.json();
-                    if (response.status !== 429 && response.status < 500) break; // Sadece 429 ve 5xx hatalarında dene
+                    
+                    // GitHub Pages ortamında 403/401 hataları genellikle API anahtarı veya CORS kaynaklıdır
+                    if (response.status === 403 || response.status === 401) {
+                        throw new Error("Yetkilendirme Hatası: API anahtarınızı kontrol edin.");
+                    }
+                    
+                    if (response.status !== 429 && response.status < 500) break;
                 } catch (err) {
                     if (i === maxRetries - 1) throw err;
                 }
@@ -721,13 +727,18 @@
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+                
+                // GitHub ortamında bazen fetch'in önbelleğe alınması sorunu için cache: 'no-cache' eklendi
                 const data = await fetchWithRetry(url, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        "Content-Type": "application/json"
+                    },
                     body: JSON.stringify({
                         instances: [{ prompt: finalPrompt }],
                         parameters: { sampleCount: 1 }
-                    })
+                    }),
+                    cache: 'no-cache'
                 });
 
                 if (data.predictions?.[0]?.bytesBase64Encoded) {
@@ -741,9 +752,9 @@
                     throw new Error("Görsel verisi alınamadı.");
                 }
             } catch (e) {
-                loadingText.innerText = "Hata Oluştu! Tekrar deneniyor veya API anahtarınızı kontrol edin.";
+                loadingText.innerText = e.message || "Hata Oluştu! Lütfen API anahtarını kontrol edin.";
                 console.error(e);
-                setTimeout(() => switchPage('prompt'), 3000);
+                setTimeout(() => switchPage('prompt'), 4000);
             }
         };
 
