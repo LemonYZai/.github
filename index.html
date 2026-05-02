@@ -289,6 +289,24 @@
         .theme-dot:hover { transform: scale(1.2); }
         .theme-dot.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
 
+        /* Enhanced Prompt Textarea */
+        #enhancedPromptText {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-style: italic;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        #enhancedPromptText:focus {
+            border-color: var(--accent);
+        }
+
     </style>
 </head>
 <body class="theme-neon">
@@ -423,7 +441,7 @@
 
                 <div class="space-y-10">
                     <div>
-                        <textarea id="promptInput" rows="4" class="w-full bg-white/5 border border-white/10 rounded-3xl p-6 text-xl outline-none focus:border-accent transition-all placeholder:text-gray-600 mb-4" placeholder="Hayalindeki sahneyi betimle..."></textarea>
+                        <textarea id="promptInput" rows="4" class="w-full bg-white/5 border border-white/10 rounded-3xl p-6 text-xl outline-none focus:border-accent transition-all placeholder:text-gray-600 mb-4" placeholder="Hayalindeki sahneyi betimle..." oninput="autoUpdateEnhanced()"></textarea>
                         <div class="flex flex-wrap gap-2">
                             <span class="text-[10px] heading-font text-gray-500 mr-2 flex items-center">İlham Al:</span>
                             <div onclick="applyInspiration('Siberpunk şehirde neon ışıkları altında bir kedi')" class="inspiration-chip">Cyber Cat</div>
@@ -473,8 +491,8 @@
                     </div>
 
                     <div id="enhancedPromptContainer" class="hidden">
-                        <span class="text-[10px] heading-font text-gray-500 mb-2 block tracking-[2px]">Profesyonel Prompt</span>
-                        <div id="enhancedPromptText" class="p-4 bg-white/5 rounded-xl border border-white/10 text-sm text-gray-300 italic"></div>
+                        <span class="text-[10px] heading-font text-gray-500 mb-2 block tracking-[2px]">Profesyonel Prompt (Düzenlenebilir)</span>
+                        <textarea id="enhancedPromptText" rows="3"></textarea>
                         <button onclick="startGeneration()" class="w-full btn-glow text-lg mt-6">GÖRSELİ ÜRET</button>
                     </div>
 
@@ -518,10 +536,10 @@
     </main>
 
     <script>
-        const apiKey = "";
+        // API KEY AYARI - GitHub'da çalışması için API anahtarının doğru set edilmesi gerekir.
+        const apiKey = ""; 
         let activeStyle = "Disney Pixar";
         let activeRatio = "1:1";
-        let currentFullPrompt = "";
 
         const stylePrompts = {
             "Disney Pixar": "3D render, Pixar animation style, cinematic lighting, cute character design, hyper-detailed textures, volumetric lighting, vibrant colors, 8k masterpiece.",
@@ -537,6 +555,23 @@
             "Mürekkep Çizimi": "Intricate ink drawing, cross-hatching, fine line work, hand-drawn aesthetic, high detail black ink on parchment.",
             "Çocuk Kitabı": "Whimsical children's book illustration, soft textures, storybook aesthetic, gentle colors, charming and friendly character design."
         };
+
+        // Üstel geri çekilme fonksiyonu (Retry logic)
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return await response.json();
+                    if (response.status !== 429 && response.status < 500) break; // Sadece 429 ve 5xx hatalarında dene
+                } catch (err) {
+                    if (i === maxRetries - 1) throw err;
+                }
+                await new Promise(res => setTimeout(res, delay));
+                delay *= 2;
+            }
+            throw new Error("API isteği başarısız oldu.");
+        }
 
         // --- AI CHAT LOGIC ---
         function toggleChat() {
@@ -586,7 +621,7 @@
             const systemPrompt = "Sen Lemon YZ Stüdyosu'nun akıllı asistanısın. Nazik, yaratıcı ve teknoloji meraklısı bir kişiliğin var. Yanıtların kısa ve öz olsun.";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
-            const response = await fetch(url, {
+            const data = await fetchWithRetry(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -594,7 +629,6 @@
                     systemInstruction: { parts: [{ text: systemPrompt }] }
                 })
             });
-            const data = await response.json();
             return data.candidates?.[0]?.content?.parts?.[0]?.text || "Anlayamadım.";
         }
 
@@ -608,15 +642,18 @@
         window.setTheme = (theme) => {
             document.body.className = `theme-${theme}`;
             document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
-            document.getElementById(`dot-${theme}`).classList.add('active');
+            const dot = document.getElementById(`dot-${theme}`);
+            if (dot) dot.classList.add('active');
             localStorage.setItem('lemon_theme_v6', theme);
         };
 
         window.switchPage = (id) => {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            document.getElementById(`page-${id}`).classList.add('active');
-            document.getElementById(`nav-${id}`)?.classList.add('active');
+            const page = document.getElementById(`page-${id}`);
+            const nav = document.getElementById(`nav-${id}`);
+            if (page) page.classList.add('active');
+            if (nav) nav.classList.add('active');
             if (id === 'library') renderLibrary();
             window.scrollTo({ top: 0, behavior: 'smooth' });
             if (document.getElementById('sidebar').classList.contains('open')) toggleMenu();
@@ -629,48 +666,70 @@
 
         window.applyInspiration = (text) => {
             document.getElementById('promptInput').value = text;
+            autoUpdateEnhanced();
         };
 
         window.selectStyle = (el, style) => {
             activeStyle = style;
             el.parentElement.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
+            autoUpdateEnhanced();
         };
 
         window.setRatio = (el, ratio) => {
             activeRatio = ratio;
             el.parentElement.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
+            autoUpdateEnhanced();
+        };
+
+        window.autoUpdateEnhanced = () => {
+            const container = document.getElementById('enhancedPromptContainer');
+            if (!container.classList.contains('hidden')) {
+                const userText = document.getElementById('promptInput').value.trim();
+                const fullPrompt = `${userText ? userText : 'Empty prompt'}. Style: ${stylePrompts[activeStyle]}. Aspect Ratio: ${activeRatio}. 8k, highly detailed, professional lighting.`;
+                document.getElementById('enhancedPromptText').value = fullPrompt;
+            }
         };
 
         window.enhancePromptOnly = () => {
             const userText = document.getElementById('promptInput').value.trim();
-            if (!userText) return;
-            currentFullPrompt = `${userText}. Stil: ${stylePrompts[activeStyle]}. Oran: ${activeRatio}. 8k, cinematic.`;
-            document.getElementById('enhancedPromptText').innerText = currentFullPrompt;
+            if (!userText) {
+                document.getElementById('promptInput').focus();
+                return;
+            }
+            const fullPrompt = `${userText}. Style: ${stylePrompts[activeStyle]}. Aspect Ratio: ${activeRatio}. 8k, highly detailed, professional lighting.`;
+            document.getElementById('enhancedPromptText').value = fullPrompt;
             document.getElementById('enhancedPromptContainer').classList.remove('hidden');
             document.getElementById('enhanceBtn').classList.add('hidden');
         };
 
         window.startGeneration = async () => {
+            const finalPrompt = document.getElementById('enhancedPromptText').value;
+            if (!finalPrompt) return;
+
             switchPage('image');
             const loader = document.getElementById('loadingLayer');
             const img = document.getElementById('mainResult');
             const controls = document.getElementById('imageControls');
+            const loadingText = document.getElementById('loadingText');
+            
             loader.classList.remove('hidden');
             img.classList.add('opacity-0');
             controls.classList.add('hidden');
+            loadingText.innerText = "Sanat İşleniyor...";
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+                const data = await fetchWithRetry(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        instances: [{ prompt: currentFullPrompt }],
+                        instances: [{ prompt: finalPrompt }],
                         parameters: { sampleCount: 1 }
                     })
                 });
-                const data = await res.json();
+
                 if (data.predictions?.[0]?.bytesBase64Encoded) {
                     img.src = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
                     img.onload = () => {
@@ -678,11 +737,16 @@
                         img.classList.remove('opacity-0');
                         controls.classList.remove('hidden');
                     };
+                } else {
+                    throw new Error("Görsel verisi alınamadı.");
                 }
-            } catch (e) { switchPage('prompt'); }
+            } catch (e) {
+                loadingText.innerText = "Hata Oluştu! Tekrar deneniyor veya API anahtarınızı kontrol edin.";
+                console.error(e);
+                setTimeout(() => switchPage('prompt'), 3000);
+            }
         };
 
-        // --- FIX: MISSING FUNCTIONS ---
         window.downloadImage = () => {
             const img = document.getElementById('mainResult');
             if (!img.src) return;
@@ -700,7 +764,6 @@
             const lib = JSON.parse(localStorage.getItem('lemon_gallery') || '[]');
             lib.unshift({ id: Date.now(), url: img.src });
             localStorage.setItem('lemon_gallery', JSON.stringify(lib));
-            // Feedback for UI
             const btn = event.currentTarget;
             const originalText = btn.innerText;
             btn.innerText = "KAYDEDİLDİ!";
